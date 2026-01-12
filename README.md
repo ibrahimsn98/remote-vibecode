@@ -277,9 +277,9 @@ Then access from another device: `http://YOUR_LOCAL_IP:7676`
 
 **READ THIS CAREFULLY - YOUR TERMINAL SECURITY IS AT RISK**
 
-1. **NEVER expose port 7676 to the internet** - This gives **anyone in the world** full control of your terminal without authentication
+1. **NEVER expose the rvc port to the internet** - This gives **anyone in the world** full control of your terminal without authentication
 2. **0.0.0.0 is for LOCAL NETWORK ONLY** - Your router/firewall MUST block this port from external access
-3. **Verify your firewall** - Check that port 7676 is not forwarded or accessible from outside your LAN
+3. **Verify your firewall** - Check that the rvc port is not forwarded or accessible from outside your LAN
 4. **Public WiFi = DANGER** - Never use 0.0.0.0 on public networks (coffee shops, airports, etc.)
 5. **Writable sessions = RISK** - Writable mode on 0.0.0.0 lets anyone on your network execute commands
 
@@ -287,19 +287,24 @@ Then access from another device: `http://YOUR_LOCAL_IP:7676`
 
 ```bash
 # From a device OUTSIDE your network (like your phone on mobile data, not WiFi):
+# Replace 7676 with your actual port if different
 curl http://YOUR_PUBLIC_IP:7676
 
 # Should get "Connection refused" or timeout
 # If you get a response, YOUR PORT IS EXPOSED TO THE INTERNET - STOP IMMEDIATELY
 ```
 
-### Safer Alternatives for Remote Access
+### Best Practice for Remote Access
 
-Instead of exposing 0.0.0.0 directly, use:
+**The recommended way to access rvc from outside your local network:**
 
 1. **VPN (Recommended)** - Tailscale, WireGuard, or your router's VPN
+   - Provides encrypted, authenticated access from anywhere
+   - Works seamlessly with rvc on default 127.0.0.1
 2. **SSH Tunnel** - `ssh -L 7676:localhost:7676 user@server`
+   - Secure port forwarding to your machine
 3. **Cloudflare Tunnel** - With Zero Trust authentication enabled
+   - Adds authentication layer before accessing rvc
 
 ## Security Disclaimer
 
@@ -327,7 +332,7 @@ This tool has **NO built-in authentication**. Anyone who can reach the port can 
 2. **0.0.0.0 requires firewall protection** - Ensure your router blocks external access
 3. **NEVER port forward** - Don't expose this to the internet for any reason
 4. **Use a VPN for remote access** - Tailscale, WireGuard, or similar
-5. **Check your firewall regularly** - Verify port 7676 is not exposed
+5. **Check your firewall regularly** - Verify the rvc port is not exposed
 6. **Beware of writable mode** - Even more dangerous on 0.0.0.0
 
 ### FOR REMOTE ACCESS, USE:
