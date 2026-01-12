@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strings"
 	"time"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -42,22 +41,22 @@ func runStart(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("✓ Created vibecode session: %s\n", sessionName)
-
 	// Set status bar
 	if err := setStatusLine(sessionName); err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: failed to set status line: %v\n", err)
 	}
 
-	// Set shell prompt
-	if err := setShellPrompt(sessionName); err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: failed to set shell prompt: %v\n", err)
-	}
+	// Show banner
+	fmt.Println()
+	fmt.Print(banner.String(sessionName))
 
-	// Display banner
-	if err := displayBanner(sessionName); err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: failed to display banner: %v\n", err)
+	// Show progress and wait
+	fmt.Printf("\n► Starting %s vibecode session", sessionName)
+	for i := 0; i < 5; i++ {
+		time.Sleep(1000 * time.Millisecond)
+		fmt.Print(".")
 	}
+	fmt.Println(" ✓")
 
 	// Attach to session
 	return attachSession(sessionName)
@@ -132,82 +131,6 @@ func setStatusLine(sessionName string) error {
 			return fmt.Errorf("failed to run: tmux %s: %w", cfg, err)
 		}
 	}
-	return nil
-}
-
-func setShellPrompt(sessionName string) error {
-	// Detect shell and set appropriate prompt
-	// For bash/zsh: set PS1 with VIBE prefix
-	// Using ANSI colors: green for VIBE, normal for rest of prompt
-
-	// Try to detect the shell by checking SHELL env var
-	detectCmd := `echo $SHELL`
-	shell := "zsh" // default to zsh on macOS
-
-	cmd := exec.Command("sh", "-c", detectCmd)
-	if output, err := cmd.Output(); err == nil {
-		shellPath := string(output)
-		if strings.Contains(shellPath, "bash") {
-			shell = "bash"
-		} else if strings.Contains(shellPath, "zsh") {
-			shell = "zsh"
-		} else if strings.Contains(shellPath, "fish") {
-			shell = "fish"
-		}
-	}
-
-	var promptCmd string
-	switch shell {
-	case "bash":
-		// Bash PS1 with VIBE prefix
-		promptCmd = `export PS1="\[\033[1;32m\]VIBE\[\033[0m\] \w $ "`
-	case "zsh":
-		// Zsh prompt with VIBE prefix
-		promptCmd = `export PS1="%F{green}VIBE%f %1~ %# "`
-	case "fish":
-		// Fish prompt
-		promptCmd = `function fish_prompt; echo -n (set_color green)"VIBE"(set_color normal)" "(prompt_pwd)"> "; end`
-	default:
-		// Generic
-		promptCmd = `export PS1="VIBE \\w $ "`
-	}
-
-	// Add the prompt command to shell startup
-	// We'll write it to a temp file and source it
-	rcFile := "/tmp/vibecode-prompt-" + sessionName + ".sh"
-	rcContent := "#!/bin/sh\n" + promptCmd + "\n"
-
-	if err := os.WriteFile(rcFile, []byte(rcContent), 0644); err != nil {
-		return err
-	}
-
-	// Source the rc file in the session
-	sourceCmd := "source " + rcFile + " && rm " + rcFile
-	if err := tmux.SendCommand(sessionName, sourceCmd); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func displayBanner(sessionName string) error {
-	// Create a temporary file with the banner content
-	tmpFile := "/tmp/vibecode-banner-" + sessionName + ".txt"
-	bannerText := banner.String(sessionName)
-
-	// Write banner to temp file
-	if err := os.WriteFile(tmpFile, []byte(bannerText), 0644); err != nil {
-		return fmt.Errorf("failed to write banner file: %w", err)
-	}
-
-	// Send commands to clear screen and cat the banner
-	if err := tmux.SendCommand(sessionName, "clear"); err != nil {
-		return err
-	}
-	if err := tmux.SendCommand(sessionName, "cat "+tmpFile+" && rm "+tmpFile); err != nil {
-		return err
-	}
-
 	return nil
 }
 

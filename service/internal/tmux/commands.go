@@ -72,13 +72,54 @@ func IsValidSessionName(name string) bool {
 
 // CreateSession creates a new tmux session with the given name
 func CreateSession(sessionName string) error {
+	return CreateSessionWithPrompt(sessionName, "")
+}
+
+// CreateSessionWithPrompt creates a new tmux session with a custom prompt
+// The prompt is set via shell initialization, avoiding visible commands
+func CreateSessionWithPrompt(sessionName, prompt string) error {
 	if !IsValidSessionName(sessionName) {
 		return fmt.Errorf("invalid session name: %s", sessionName)
 	}
 	if SessionExists(sessionName) {
 		return fmt.Errorf("session '%s' already exists", sessionName)
 	}
-	cmd := exec.Command("tmux", "new-session", "-d", "-s", sessionName)
+
+	// Detect shell
+	shell := "zsh"
+	detectCmd := exec.Command("sh", "-c", "echo $SHELL")
+	if output, err := detectCmd.Output(); err == nil {
+		shellPath := strings.TrimSpace(string(output))
+		if strings.Contains(shellPath, "bash") {
+			shell = "bash"
+		} else if strings.Contains(shellPath, "zsh") {
+			shell = "zsh"
+		} else if strings.Contains(shellPath, "fish") {
+			shell = "fish"
+		}
+	}
+
+	// Build initial command that sets prompt and starts shell
+	var initialCmd string
+	if prompt != "" {
+		switch shell {
+		case "bash":
+			initialCmd = fmt.Sprintf("bash -c 'PS1=%q; exec bash'", prompt)
+		case "zsh":
+			initialCmd = fmt.Sprintf("zsh -c 'PS1=%q; exec zsh'", prompt)
+		case "fish":
+			// Fish uses a different prompt system - use environment variable approach
+			fishPrompt := `(set_color green)"VIBE"(set_color normal) " "(prompt_pwd)"> "`
+			initialCmd = fmt.Sprintf("fish -c 'function fish_prompt; echo -n %s; end; exec fish'", fishPrompt)
+		default:
+			initialCmd = shell
+		}
+	} else {
+		initialCmd = shell
+	}
+
+	// Create session with initial command
+	cmd := exec.Command("tmux", "new-session", "-d", "-s", sessionName, initialCmd)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("failed to create session: %w\nOutput: %s", err, string(output))

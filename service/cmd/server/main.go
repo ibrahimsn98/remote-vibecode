@@ -25,10 +25,8 @@ import (
 //go:embed web/*
 var webFS embed.FS
 
-var Version = "dev"
-
 const (
-	DefaultHost = "0.0.0.0"
+	DefaultHost = "127.0.0.1"
 	DefaultPort = "8080"
 	Banner      = `.................................................
 .#####...######..##...##...####...######..######.               
@@ -59,9 +57,6 @@ func main() {
 
 	// Print banner with server address
 	fmt.Printf(Banner, serverAddr, serverAddr)
-	if Version != "dev" {
-		fmt.Printf("remote-vibecode version %s\n", Version)
-	}
 
 	sessionHub := ws.NewSessionHub()
 	tmuxMgr := tmux.New(sessionHub)

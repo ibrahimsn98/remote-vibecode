@@ -11,13 +11,13 @@ import (
 
 // attachSession attaches the current terminal to a tmux session
 func attachSession(sessionName string) error {
+	fmt.Printf("\nSession continues running after you detach.\n")
+	fmt.Printf("Rejoin with: vibecode join %s\n\n", sessionName)
+
 	cmd := exec.Command("tmux", "attach-session", "-t", sessionName)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-
-	fmt.Printf("\nSession continues running after you detach.\n")
-	fmt.Printf("Rejoin with: vibecode join %s\n\n", sessionName)
 
 	return cmd.Run()
 }
