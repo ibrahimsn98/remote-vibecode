@@ -58,7 +58,7 @@ Browser (xterm.js) <---> WebSocket (gotty protocol) <---> tmux session
 ### Add the Tap
 
 ```bash
-brew tap yourusername/tap
+brew tap ibrahimsn98/homebrew-remote-vibecode
 ```
 
 ### Install
@@ -214,6 +214,56 @@ For persistent configuration, create or edit `~/Library/LaunchAgents/homebrew.mx
 </dict>
 ```
 
+## Remote Connection
+
+For secure remote access to your terminal sessions, use one of the following methods. **Never expose the service directly to the internet without authentication** - see [Security Disclaimer](#security-disclaimer).
+
+### Option 1: Tailscale VPN
+
+Tailscale creates a private network between your devices, allowing secure access to Remote Vibecode from anywhere.
+
+```bash
+# Install Tailscale
+brew install --cask tailscale
+
+# Login and connect to your tailnet
+tailscale up
+
+# Find your Tailscale IP
+tailscale ip -4
+```
+
+Once connected, access Remote Vibecode using your Tailscale IP:
+- Navigate to `http://<your-tailscale-ip>:8080`
+
+**Benefits**: Only devices in your tailnet can connect. No open ports required.
+
+### Option 2: Cloudflare Tunnels + Zero Trust
+
+Cloudflare Tunnels securely expose your service to the internet without opening ports, with built-in authentication.
+
+```bash
+# Install cloudflared
+brew install cloudflared
+
+# Login to Cloudflare
+cloudflared tunnel login
+
+# Create a tunnel
+cloudflared tunnel create vibecode
+
+# Run the tunnel (points to localhost:8080)
+cloudflared tunnel --url http://localhost:8080
+```
+
+Set up **Cloudflare Zero Trust** access in the Cloudflare dashboard:
+- Navigate to Zero Trust > Access > Applications
+- Add your tunnel URL
+- Configure authentication (Email PIN, One-time PIN, or SSO)
+- Access via: `https://your-subdomain.your-domain.com`
+
+**Benefits**: Secure authentication, no open ports, DDoS protection, works from anywhere.
+
 ## Troubleshooting
 
 ### Service Not Starting
@@ -263,7 +313,7 @@ sudo brew services restart remote-vibecode
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/remote-vibecode.git
+git clone https://github.com/ibrahimsn98/remote-vibecode.git
 cd remote-vibecode
 
 # Build the service
@@ -309,6 +359,21 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## Screenshots
 
 <!-- TODO: Add demo GIF or screenshots here -->
+
+## Security Disclaimer
+
+**IMPORTANT**: Remote Vibecode runs on `127.0.0.1` (localhost) by default and is **not exposed to external networks**.
+
+**Never change the `HOST` to `0.0.0.0`** without proper security measures. Doing so creates a **Remote Code Execution (RCE) vulnerability** - anyone on your network can access your terminal sessions without authentication.
+
+For remote access, always use one of the following secure methods:
+- A VPN service (see [Remote Connection](#remote-connection) below)
+- SSH tunneling
+- Cloudflare Tunnels with Zero Trust authentication
+
+**Never expose Remote Vibecode directly to the internet without authentication.**
+
+
 
 ## FAQ
 
