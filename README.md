@@ -1,11 +1,11 @@
 ```
 .................................................
-.#####...######..##...##...####...######..######.               
-.##..##..##......###.###..##..##....##....##.....               
-.#####...####....##.#.##..##..##....##....####...               
-.##..##..##......##...##..##..##....##....##.....               
-.##..##..######..##...##...####.....##....######.               
-.................................................               
+.#####...######..##...##...####...######..######.
+.##..##..##......###.###..##..##....##....##.....
+.#####...####....##.#.##..##..##....##....####...
+.##..##..##......##...##..##..##....##....##.....
+.##..##..######..##...##...####.....##....######.
+.................................................
 .##..##..######..#####...######...####....####...#####...######.
 .##..##....##....##..##..##......##..##..##..##..##..##..##.....
 .##..##....##....#####...####....##......##..##..##..##..####...
@@ -13,6 +13,9 @@
 ...##....######..#####...######...####....####...#####...######.
 ................................................................
 ```
+
+[![Go Version](https://img.shields.io/badge/Go-1.23+-00ADD8E?style=flat&logo=go)](https://golang.org/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 # Remote Vibecode [WIP]
 
@@ -43,6 +46,8 @@ Browser (xterm.js) <---> WebSocket (gotty protocol) <---> tmux session
 ## Features
 
 - **Real-time Terminal Access** - Full terminal emulation in your browser
+- **Read-Only Sessions** - Sessions are read-only by default for safe viewing
+- **Writable Sessions** - Use `-w` flag to allow web clients to type
 - **Auto-discovery** - Sessions appear automatically as you create them
 - **Multi-session Support** - Manage multiple sessions with a sidebar navigation
 - **Responsive Design** - Works on desktop, tablet, and mobile
@@ -52,94 +57,104 @@ Browser (xterm.js) <---> WebSocket (gotty protocol) <---> tmux session
 ## Prerequisites
 
 - macOS with Homebrew
+- tmux (installed automatically by Homebrew)
 
 ## Installation
 
-### Add the Tap
-
 ```bash
 brew tap ibrahimsn98/homebrew-remote-vibecode
-```
-
-### Install
-
-```bash
-brew install remote-vibecode
-```
-
-### Start the Service
-
-```bash
-brew services start remote-vibecode
-```
-
-### Verify Installation
-
-```bash
-brew services list | grep remote-vibecode
-```
-
-You should see `remote-vibecode` listed as `started`.
-
-The service runs on http://localhost:8080 by default.
-
-### Uninstall
-
-```bash
-brew services stop remote-vibecode
-brew uninstall remote-vibecode
+brew install rv
 ```
 
 ## Quick Start
 
-### Step 1: Start a Session
+### Step 1: Start the Web Server
 
 ```bash
-vibecode start my-project
+rv serve
 ```
 
-### Step 2: Open in Browser
+The server runs on http://localhost:7676 by default.
 
-Navigate to http://localhost:8080 and click on your session to connect.
+### Step 2: Start a Session
+
+In a new terminal:
+
+```bash
+rv start my-project
+```
+
+This creates a **read-only** session - viewers can see but not type.
+
+### Step 3: Open in Browser
+
+Navigate to http://localhost:7676 and click on your session to connect.
 
 That's it! You now have a browser-based terminal connected to your session.
 
 ## CLI Reference
 
+### Start the Web Server
+
+```bash
+rv serve [--host 0.0.0.0] [--port 9000]
+```
+
+Starts the web server for remote terminal viewing.
+
+**Options:**
+- `--host` - Host to bind to (default: 127.0.0.1)
+- `--port` - Port to listen on (default: 7676)
+
+**Examples:**
+```bash
+rv serve                                    # Default: 127.0.0.1:7676
+rv serve --host 0.0.0.0                     # Allow network access
+rv serve --port 9000                        # Custom port
+rv serve --host 192.168.1.100 --port 9000   # Both custom
+```
+
 ### Start a New Session
 
 ```bash
-vibecode start <session-name>
+rv start <session-name> [-w]
 ```
 
-Creates and starts a new named session.
+Creates and starts a new named tmux session.
 
+**Options:**
+- `-w, --writable` - Create a writable session (web clients can type)
+
+**Examples:**
 ```bash
-vibecode start frontend
-vibecode start backend
-vibecode start database
+rv start frontend           # Read-only session (default)
+rv start -w backend         # Writable session
+rv start database -w        # Writable session
 ```
 
 ### List Sessions
 
 ```bash
-vibecode list
+rv list
 ```
 
-Shows all active sessions.
+Shows all active tmux sessions.
 
 ### Stop a Session
 
 ```bash
-vibecode stop <session-name>
+rv stop <session-name> [-f]
 ```
 
 Stops and removes the specified session.
 
-### Attach to a Session
+**Options:**
+- `-f, --force` - Skip confirmation prompt
+
+### Join a Session
 
 ```bash
-vibecode attach <session-name>
+rv join [session-name]
 ```
 
 Attaches your terminal to an existing session (useful for direct terminal access).
@@ -149,78 +164,114 @@ Attaches your terminal to an existing session (useful for direct terminal access
 ### Multiple Sessions for Different Projects
 
 ```bash
-# Start sessions for different parts of your stack
-vibecode start frontend
-vibecode start backend
-vibecode start database
+# Terminal 1: Start the web server
+rv serve
 
-# Open http://localhost:8080
+# Terminal 2: Start sessions
+rv start frontend
+rv start -w backend
+rv start database
+
+# Open http://localhost:7676
 # Switch between sessions using the sidebar
 ```
 
-### Remote Pair Programming
+### Read-Only Viewing Session
 
 ```bash
-# Start your session
-vibecode start pair-session
+# Start a read-only session (default)
+rv start demo-session
 
-# Share your screen with your teammate
-# They can watch you work or you can grant them control
+# Viewers can see your terminal but cannot type
 ```
 
-### Workshop Presentation
+### Writable Collaboration Session
 
 ```bash
-# Create a session for your workshop
-vibecode start workshop-demo
+# Start a writable session
+rv start -w pair-session
 
-# Participants can follow along on the big screen
-# Or they can connect to their own sessions
+# Both you and web viewers can type
+# Great for pair programming
 ```
+
+### Custom Server Configuration
+
+```bash
+# Allow access from other devices on your network
+rv serve --host 0.0.0.0 --port 9000
+
+# Access from another device
+# http://YOUR_LOCAL_IP:9000
+```
+
+## Session Modes
+
+### Read-Only (Default)
+
+Sessions are read-only by default. Web viewers can:
+- See everything happening in the terminal
+- Scroll through history
+- **Cannot** type or execute commands
+
+Perfect for:
+- Demonstrations
+- Teaching
+- Monitoring
+- Safe code review
+
+### Writable (with `-w` flag)
+
+Sessions created with `-w` allow web clients to type.
+
+Web viewers can:
+- See everything
+- Type commands
+- Interact with the terminal
+
+Perfect for:
+- Pair programming
+- Remote collaboration
+- Interactive debugging
+
+**Security Note:** Only use writable sessions with trusted collaborators.
 
 ## Configuration
 
-Remote Vibecode can be configured via environment variables.
+The `rv serve` command uses CLI flags instead of environment variables:
 
 ### Port
 
-Change the default port (8080):
-
 ```bash
-export PORT=9000
-brew services restart remote-vibecode
+rv serve --port 9000
 ```
 
 ### Host
 
-Change the bind address:
-
 ```bash
-export HOST=192.168.1.100
-brew services restart remote-vibecode
+# Local only (default)
+rv serve --host 127.0.0.1
+
+# Allow network access
+rv serve --host 0.0.0.0
+
+# Specific IP
+rv serve --host 192.168.1.100
 ```
 
-### Service Configuration
+### Combined
 
-For persistent configuration, create or edit `~/Library/LaunchAgents/homebrew.mxcl.remote-vibecode.plist`:
-
-```xml
-<key>EnvironmentVariables</key>
-<dict>
-    <key>PORT</key>
-    <string>9000</string>
-    <key>HOST</key>
-    <string>0.0.0.0</string>
-</dict>
+```bash
+rv serve --host 0.0.0.0 --port 9000
 ```
 
 ## Remote Connection
 
-For secure remote access to your terminal sessions, use one of the following methods. **Never expose the service directly to the internet without authentication** - see [Security Disclaimer](#security-disclaimer).
+For secure remote access to your terminal sessions, use one of the following methods. **Never expose the service directly to the internet without authentication**.
 
 ### Option 1: Tailscale VPN
 
-Tailscale creates a private network between your devices, allowing secure access to Remote Vibecode from anywhere.
+Tailscale creates a private network between your devices, allowing secure access from anywhere.
 
 ```bash
 # Install Tailscale
@@ -233,14 +284,9 @@ tailscale up
 tailscale ip -4
 ```
 
-Once connected, access Remote Vibecode using your Tailscale IP:
-- Navigate to `http://<your-tailscale-ip>:8080`
-
-**Benefits**: Only devices in your tailnet can connect. No open ports required.
+Access using your Tailscale IP: `http://<your-tailscale-ip>:7676`
 
 ### Option 2: Cloudflare Tunnels + Zero Trust
-
-Cloudflare Tunnels securely expose your service to the internet without opening ports, with built-in authentication.
 
 ```bash
 # Install cloudflared
@@ -250,62 +296,42 @@ brew install cloudflared
 cloudflared tunnel login
 
 # Create a tunnel
-cloudflared tunnel create vibecode
+cloudflared tunnel create rv
 
-# Run the tunnel (points to localhost:8080)
-cloudflared tunnel --url http://localhost:8080
+# Run the tunnel
+cloudflared tunnel --url http://localhost:7676
 ```
 
-Set up **Cloudflare Zero Trust** access in the Cloudflare dashboard:
-- Navigate to Zero Trust > Access > Applications
-- Add your tunnel URL
-- Configure authentication (Email PIN, One-time PIN, or SSO)
-- Access via: `https://your-subdomain.your-domain.com`
-
-**Benefits**: Secure authentication, no open ports, DDoS protection, works from anywhere.
+Set up Zero Trust access in the Cloudflare dashboard for authentication.
 
 ## Troubleshooting
 
-### Service Not Starting
-
-If the service fails to start:
+### Server Not Starting
 
 ```bash
-# Check service status
-brew services list
+# Check if port is already in use
+lsof -i :7676
 
-# View logs
-log show --predicate 'process == "remote-vibecode"' --last 1h
-
-# Try starting manually for more error info
-remote-vibecode-server
+# Try a different port
+rv serve --port 9000
 ```
 
 ### Session Not Appearing
 
-If your session doesn't show up in the browser:
+```bash
+# Verify the session is running
+rv list
 
-- Verify the session is running: `vibecode list`
-- Check the web console for WebSocket errors
-- Ensure the service is running: `brew services list | grep remote-vibecode`
+# Check the web console for WebSocket errors
+# Ensure the server is running
+```
 
 ### Browser Connection Issues
 
-If you can't connect from your browser:
-
-- Check that http://localhost:8080 is accessible
+- Check that http://localhost:7676 is accessible
 - Try a different browser
 - Check your firewall settings
-- Verify the service is running on the expected port
-
-### Permission Issues
-
-If you see permission errors:
-
-```bash
-# Ensure homebrew services have correct permissions
-sudo brew services restart remote-vibecode
-```
+- Verify the server is running on the expected port
 
 ## Development
 
@@ -316,27 +342,32 @@ sudo brew services restart remote-vibecode
 git clone https://github.com/ibrahimsn98/remote-vibecode.git
 cd remote-vibecode
 
-# Build the service
-cd service && go build -o remote-vibecode-server ./cmd/server
+# Build the binary
+cd service && go build -o rv ./cmd/vibecode
 
 # Run locally
-./remote-vibecode-server
+./rv serve
 ```
 
 ### Project Structure
 
 ```
 remote-vibecode/
-├── service/              # Main Go service
-│   ├── cmd/server/       # Service entry point
-│   ├── internal/         # Internal packages
-│   │   ├── api/          # REST API handlers
-│   │   ├── gotty/        # Gotty protocol implementation
-│   │   ├── tmux/         # Session management
-│   │   └── ws/           # WebSocket handlers
-│   └── web/              # Static web dashboard
-├── scripts/              # Utility scripts
-└── README.md             # This file
+├── service/
+│   ├── cmd/vibecode/       # CLI entry point (rv command)
+│   │   ├── main.go         # Main CLI with serve command
+│   │   ├── commands/        # CLI subcommands (start, stop, list, join)
+│   │   ├── web/            # Embedded web dashboard
+│   │   └── internal/
+│   │       └── banner/      # Startup banner
+│   ├── internal/
+│   │   ├── api/            # REST API handlers
+│   │   ├── gotty/          # Gotty protocol implementation
+│   │   ├── tmux/           # Session management
+│   │   ├── session/        # Session tracking
+│   │   └── ws/             # WebSocket handlers
+│   └── web/                # Source web dashboard (embedded)
+└── README.md
 ```
 
 ### Running Tests
@@ -356,38 +387,36 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## Screenshots
-
-<!-- TODO: Add demo GIF or screenshots here -->
-
 ## Security Disclaimer
 
-**IMPORTANT**: Remote Vibecode runs on `127.0.0.1` (localhost) by default and is **not exposed to external networks**.
+**IMPORTANT**: The `rv serve` command runs on `127.0.0.1` (localhost) by default and is **not exposed to external networks**.
 
-**Never change the `HOST` to `0.0.0.0`** without proper security measures. Doing so creates a **Remote Code Execution (RCE) vulnerability** - anyone on your network can access your terminal sessions without authentication.
+**Never use `--host 0.0.0.0`** without proper security measures. Doing so creates a **Remote Code Execution (RCE) vulnerability** - anyone on your network can access your terminal sessions without authentication.
 
 For remote access, always use one of the following secure methods:
-- A VPN service (see [Remote Connection](#remote-connection) below)
+- A VPN service (Tailscale, WireGuard)
 - SSH tunneling
 - Cloudflare Tunnels with Zero Trust authentication
 
 **Never expose Remote Vibecode directly to the internet without authentication.**
 
-
-
 ## FAQ
 
 **Q: Can I access this from another computer?**
 
-A: Yes! Set the `HOST` environment variable to your local IP address and ensure port 8080 is open on your firewall.
+A: Yes! Use `rv serve --host 0.0.0.0` and ensure your firewall allows port 7676.
 
 **Q: Is my terminal session secure?**
 
-A: Remote Vibecode runs on localhost by default. When exposing it to a network, consider using a reverse proxy with SSL/TLS termination.
+A: Remote Vibecode runs on localhost by default. When using `--host 0.0.0.0`, ensure you're on a trusted network or use a VPN.
 
 **Q: Can multiple people view the same session?**
 
 A: Yes! Multiple browsers can connect to the same session simultaneously.
+
+**Q: What's the difference between read-only and writable sessions?**
+
+A: Read-only sessions allow viewing only. Writable sessions (created with `-w`) allow web clients to type commands.
 
 **Q: What happens to my session when I close the browser?**
 

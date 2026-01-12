@@ -5,6 +5,8 @@ import (
 	"encoding/base64"
 	"log"
 	"net/http"
+	"os/exec"
+	"strings"
 	"sync"
 	"time"
 
@@ -69,7 +71,13 @@ func (h *GottyHandler) HandleTmuxSession(c *gin.Context) {
 		return
 	}
 
-	log.Printf("Gotty session created: %s -> tmux:%s", sessionID[:8], tmuxSessionName)
+	// Check if session is writable (by querying tmux directly)
+	isWritable := isSessionWritable(tmuxSessionName)
+	writeMode := "read-only"
+	if isWritable {
+		writeMode = "writable"
+	}
+	log.Printf("Gotty session created: %s -> tmux:%s (%s)", sessionID[:8], tmuxSessionName, writeMode)
 
 	// Start bidirectional streaming
 	var wg sync.WaitGroup
@@ -122,6 +130,11 @@ func (h *GottyHandler) HandleTmuxSession(c *gin.Context) {
 			if messageType == websocket.TextMessage && len(data) > 0 {
 				switch data[0] {
 				case gottyInput:
+					// Only write to PTY if session is writable
+					if !isWritable {
+						log.Printf("Session %s is read-only, ignoring input", tmuxSessionName)
+						break
+					}
 					// User input - write directly to PTY
 					if _, err := session.Write(data[1:]); err != nil {
 						log.Printf("PTY write error: %v", err)
@@ -149,4 +162,14 @@ func (h *GottyHandler) HandleTmuxSession(c *gin.Context) {
 	_ = conn.Close()
 
 	log.Printf("Gotty session closed: %s", sessionID[:8])
+}
+
+// isSessionWritable checks if a session is writable using tmux user-options
+func isSessionWritable(sessionName string) bool {
+	cmd := exec.Command("tmux", "show-option", "-t", sessionName, "-qv", "@rv-writable")
+	output, err := cmd.Output()
+	if err != nil {
+		return false // Not set = read-only
+	}
+	return strings.TrimSpace(string(output)) == "1"
 }

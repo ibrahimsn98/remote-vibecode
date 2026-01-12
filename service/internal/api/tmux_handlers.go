@@ -48,6 +48,7 @@ func (h *TmuxHandlers) ListSessions(c *gin.Context) {
 			"status":       sess.GetStatus(),
 			"created_at":   sess.CreatedAt,
 			"last_capture": sess.LastCapture,
+			"writable":     tmux.IsWritable(sess.SessionName),
 		})
 	}
 
@@ -82,6 +83,7 @@ func (h *TmuxHandlers) SessionWebSocket(c *gin.Context) {
 			SessionName: sess.SessionName,
 			CreatedAt:   sess.CreatedAt.Unix(),
 			LastCapture: sess.LastCapture.Unix(),
+			Writable:    tmux.IsWritable(sess.SessionName),
 		})
 	}
 

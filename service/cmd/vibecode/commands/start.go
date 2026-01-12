@@ -15,10 +15,16 @@ import (
 
 var StartCmd = &cobra.Command{
 	Use:   "start",
-	Short: "Start a new vibecode session",
-	Long: `Start a new vibecode tmux session with custom configuration.
+	Short: "Start a new rv session",
+	Long: `Start a new rv tmux session with custom configuration.
 The session will have a distinctive status bar and startup banner.`,
 	RunE: runStart,
+}
+
+var writableFlag bool
+
+func init() {
+	StartCmd.Flags().BoolVarP(&writableFlag, "writable", "w", false, "Create a writable session (web clients can type)")
 }
 
 func runStart(cmd *cobra.Command, args []string) error {
@@ -41,6 +47,16 @@ func runStart(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// Set writable flag if -w was provided
+	if writableFlag {
+		if err := tmux.SetWritable(sessionName, true); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to set writable flag: %v\n", err)
+		}
+		fmt.Printf("Session '%s' is WRITABLE (web clients can type)\n", sessionName)
+	} else {
+		fmt.Printf("Session '%s' is READ-ONLY (use -w flag for writable)\n", sessionName)
+	}
+
 	// Set status bar
 	if err := setStatusLine(sessionName); err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: failed to set status line: %v\n", err)
@@ -51,7 +67,7 @@ func runStart(cmd *cobra.Command, args []string) error {
 	fmt.Print(banner.String(sessionName))
 
 	// Show progress and wait
-	fmt.Printf("\n► Starting %s vibecode session", sessionName)
+	fmt.Printf("\n► Starting %s rv session", sessionName)
 	for i := 0; i < 5; i++ {
 		time.Sleep(1000 * time.Millisecond)
 		fmt.Print(".")
@@ -75,14 +91,13 @@ func checkServiceRunning() {
 	cmd := exec.Command("curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", "http://localhost:8080/api/v1/health")
 	output, err := cmd.Output()
 	if err != nil || string(output) != "200" {
-		fmt.Fprintf(os.Stderr, "⚠ Warning: vibecode service may not be running.\n")
-		fmt.Fprintf(os.Stderr, "  Start it with: brew services start remote-vibecode\n")
-		fmt.Fprintf(os.Stderr, "  Or manually: cd service && go run cmd/server/main.go\n\n")
+		fmt.Fprintf(os.Stderr, "⚠ Warning: rv server may not be running.\n")
+		fmt.Fprintf(os.Stderr, "  Start it with: rv serve\n\n")
 	}
 }
 
 func promptSessionName() (string, error) {
-	defaultName := fmt.Sprintf("vibecode-%d", time.Now().Unix())
+	defaultName := fmt.Sprintf("rv-%d", time.Now().Unix())
 
 	var sessionName string
 	prompt := &survey.Input{
@@ -101,7 +116,7 @@ func promptSessionName() (string, error) {
 
 	// Check if session already exists
 	if tmux.SessionExists(sessionName) {
-		return "", fmt.Errorf("session '%s' already exists. Use 'vibecode join %s' to connect.", sessionName, sessionName)
+		return "", fmt.Errorf("session '%s' already exists. Use 'rv join %s' to connect.", sessionName, sessionName)
 	}
 
 	return sessionName, nil
@@ -110,7 +125,7 @@ func promptSessionName() (string, error) {
 func setStatusLine(sessionName string) error {
 	// Set the global status line options (not session-specific)
 	statusConfig := []string{
-		"set-option -g status-left '#[bg=green]#[fg=black] VIBE #[default] #{session_name} '",
+		"set-option -g status-left '#[bg=green]#[fg=black] RV #[default] #{session_name} '",
 		"set-option -g status-right '%H:%M %d-%b-%y'",
 		"set-option -g status-bg '#1a1a2e'",
 		"set-option -g status-fg '#eee8aa'",

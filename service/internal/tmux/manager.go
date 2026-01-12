@@ -223,6 +223,7 @@ func (m *Manager) broadcastSessions() {
 			SessionName: sess.SessionName,
 			CreatedAt:   sess.CreatedAt.Unix(),
 			LastCapture: sess.LastCapture.Unix(),
+			Writable:    IsWritable(sess.SessionName),
 		})
 	}
 

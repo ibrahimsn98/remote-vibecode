@@ -102,6 +102,7 @@ type SessionInfo struct {
 	SessionName string `json:"session_name"`
 	CreatedAt   int64  `json:"created_at"`
 	LastCapture int64  `json:"last_capture"`
+	Writable    bool   `json:"writable"`
 }
 
 // ReadPump handles messages from the WebSocket connection

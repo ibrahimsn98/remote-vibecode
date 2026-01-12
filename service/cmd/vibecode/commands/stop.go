@@ -15,8 +15,8 @@ var (
 
 var StopCmd = &cobra.Command{
 	Use:   "stop [session-name]",
-	Short: "Stop a vibecode session",
-	Long:  `Stop (kill) a vibecode tmux session. You'll be prompted to confirm unless --force is used.`,
+	Short: "Stop an rv session",
+	Long:  `Stop (kill) an rv tmux session. You'll be prompted to confirm unless --force is used.`,
 	RunE:  runStop,
 }
 
@@ -45,7 +45,7 @@ func runStop(cmd *cobra.Command, args []string) error {
 
 	// Check if session exists
 	if !tmux.SessionExists(sessionName) {
-		return fmt.Errorf("session '%s' does not exist. Use 'vibecode list' to see available sessions.", sessionName)
+		return fmt.Errorf("session '%s' does not exist. Use 'rv list' to see available sessions.", sessionName)
 	}
 
 	// Confirm before killing (unless --force)

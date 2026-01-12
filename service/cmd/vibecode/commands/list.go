@@ -13,7 +13,7 @@ import (
 
 var ListCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List all vibecode sessions",
+	Short: "List all rv sessions",
 	Long:  `List all available tmux sessions with their details.`,
 	RunE:  runList,
 }
@@ -26,7 +26,7 @@ func runList(cmd *cobra.Command, args []string) error {
 
 	if len(sessions) == 0 {
 		fmt.Println("No tmux sessions found.")
-		fmt.Println("Create one with: vibecode start")
+		fmt.Println("Create one with: rv start")
 		return nil
 	}
 
@@ -46,7 +46,7 @@ func runList(cmd *cobra.Command, args []string) error {
 
 	w.Flush()
 	fmt.Printf("\nTotal sessions: %d\n", len(sessions))
-	fmt.Println("Join a session: vibecode join [session-name]")
+	fmt.Println("Join a session: rv join [session-name]")
 
 	return nil
 }
