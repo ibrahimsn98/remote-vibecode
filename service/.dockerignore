@@ -1,0 +1,14 @@
+bin/
+*.log
+.env.local
+.env.*.local
+.DS_Store
+*.md
+docs/
+.git/
+.gitignore
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  tmux-terminal:
+    build:
+      context: ./service
+      dockerfile: Dockerfile
+    container_name: tmux-terminal-service
+    ports:
+      - "8080:8080"
+    volumes:
+      # Mount tmux socket directory for persistence
+      - tmux-sockets:/tmp/tmux-sockets
+      # Optional: Mount a directory for shared tmux sessions
+      - ./tmux-sessions:/home/root/.tmux
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    networks:
+      - tmux-network
+
+volumes:
+  tmux-sockets:
+
+networks:
+  tmux-network:
+    driver: bridge
