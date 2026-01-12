@@ -27,6 +27,8 @@ Built on tmux and gotty, Remote Vibecode provides a clean, modern web interface 
 
 Remote Vibecode transforms your terminal into a shareable, browser-accessible workspace. Whether you're pair programming, providing remote support, teaching workshops, or managing multiple server sessions, Remote Vibecode gives you a centralized dashboard for all your terminal needs.
 
+![Remote Vibecode Screenshot](art/ss-01.png)
+
 ### Use Cases
 
 - **Pair Programming** - Share your terminal with a colleague in real-time
