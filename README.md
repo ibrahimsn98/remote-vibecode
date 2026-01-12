@@ -29,13 +29,9 @@ Remote Vibecode transforms your terminal into a shareable, browser-accessible wo
 
 ![Remote Vibecode Screenshot](art/ss-01.png)
 
-### Use Cases
+## Motivation
 
-- **Pair Programming** - Share your terminal with a colleague in real-time
-- **Remote Access** - Access your development environment from any device
-- **Teaching & Workshops** - Demonstrate terminal workflows to students
-- **Server Management** - Manage multiple server sessions from one browser tab
-- **Code Reviews** - Walk through code together in a shared terminal
+When running extended vibe coding sessions with long planning and implementation phases, you shouldn't have to stay tethered to your computer to review, accept, or revise the coding tool's processes. Remote Vibecode gives you the freedom to monitor and control your development session from any device—whether you're on the same local network or connected via mobile network through VPN or Cloudflare Tunnel. Continue your work uninterrupted even when you step away from your desk.
 
 ## How It Works
 
@@ -216,11 +212,7 @@ Sessions are read-only by default. Web viewers can:
 - Scroll through history
 - **Cannot** type or execute commands
 
-Perfect for:
-- Demonstrations
-- Teaching
-- Monitoring
-- Safe code review
+Perfect for monitoring your vibe coding sessions from other devices while the AI tool runs planning and implementation phases.
 
 ### Writable (with `-w` flag)
 
@@ -231,12 +223,9 @@ Web viewers can:
 - Type commands
 - Interact with the terminal
 
-Perfect for:
-- Pair programming
-- Remote collaboration
-- Interactive debugging
+Use this mode when you need to make quick edits, accept/reject changes, or intervene in the coding process from a remote device.
 
-**Security Note:** Only use writable sessions with trusted collaborators.
+**Security Note:** Only use writable sessions on trusted networks. See the Security Disclaimer below.
 
 ## Configuration
 
@@ -251,42 +240,112 @@ rvc serve --port 9000
 ### Host
 
 ```bash
-# Local only (default)
+# Local only (default - safest)
 rvc serve --host 127.0.0.1
 
-# Allow network access (Read #Security Disclaimer)
+# Allow local network access (see Network Access guide below)
 rvc serve --host 0.0.0.0
 
-# Specific IP (Read #Security Disclaimer)
+# Specific network interface
 rvc serve --host 192.168.1.100
 ```
 
 ### Combined
 
 ```bash
-rvc serve --host 0.0.0.0 --port 9000
+rvc serve --host 0.0.0.0 --port 7676
 ```
+
+## Network Access Guide
+
+You can run `rvc serve` with `--host 0.0.0.0` to allow connections from other devices on your local network. This is useful for monitoring your vibe coding sessions from a phone, tablet, or another computer.
+
+### Finding Your Local IP
+
+```bash
+# macOS/Linux
+ipconfig getifaddr en0  # Wi-Fi
+ipconfig getifaddr en1  # Ethernet
+
+# Linux (alternative)
+ip addr show | grep "inet " | grep -v 127.0.0.1
+```
+
+Then access from another device: `http://YOUR_LOCAL_IP:7676`
+
+### ⚠️ CRITICAL SECURITY WARNINGS
+
+**READ THIS CAREFULLY - YOUR TERMINAL SECURITY IS AT RISK**
+
+1. **NEVER expose port 7676 to the internet** - This gives **anyone in the world** full control of your terminal without authentication
+2. **0.0.0.0 is for LOCAL NETWORK ONLY** - Your router/firewall MUST block this port from external access
+3. **Verify your firewall** - Check that port 7676 is not forwarded or accessible from outside your LAN
+4. **Public WiFi = DANGER** - Never use 0.0.0.0 on public networks (coffee shops, airports, etc.)
+5. **Writable sessions = RISK** - Writable mode on 0.0.0.0 lets anyone on your network execute commands
+
+### How to Verify Your Network is Safe
+
+```bash
+# From a device OUTSIDE your network (like your phone on mobile data, not WiFi):
+curl http://YOUR_PUBLIC_IP:7676
+
+# Should get "Connection refused" or timeout
+# If you get a response, YOUR PORT IS EXPOSED TO THE INTERNET - STOP IMMEDIATELY
+```
+
+### Safer Alternatives for Remote Access
+
+Instead of exposing 0.0.0.0 directly, use:
+
+1. **VPN (Recommended)** - Tailscale, WireGuard, or your router's VPN
+2. **SSH Tunnel** - `ssh -L 7676:localhost:7676 user@server`
+3. **Cloudflare Tunnel** - With Zero Trust authentication enabled
 
 ## Security Disclaimer
 
-**IMPORTANT**: The `rvc serve` command runs on `127.0.0.1` (localhost) by default and is **not exposed to external networks**.
+🔴 **THIS IS A CRITICAL SECURITY WARNING - READ BEFORE USING --host 0.0.0.0**
 
-**Never use `--host 0.0.0.0`** without proper security measures. Doing so creates a **Remote Code Execution (RCE) vulnerability** - anyone on your network can access your terminal sessions without authentication.
+**Remote Vibecode provides direct terminal access. This is equivalent to giving someone physical access to your computer with the terminal already open.**
 
-For remote access, always use one of the following secure methods:
-- A VPN service (Tailscale, WireGuard)
-- SSH tunneling
-- Cloudflare Tunnels with Zero Trust authentication
+### The Danger
 
-**Never expose Remote Vibecode directly to the internet without authentication.**
+When you run `rvc serve --host 0.0.0.0`, **anyone who can connect to that port gets full control of your terminal**:
+- They can read everything on your screen
+- They can execute any command
+- They can access your files
+- They can install malware
+- They can steal credentials
+- They can delete your data
 
-## Remote Connection
+### NO AUTHENTICATION
 
-For secure remote access to your terminal sessions, use one of the following methods. **Never expose the service directly to the internet without authentication**.
+This tool has **NO built-in authentication**. Anyone who can reach the port can use it.
 
-### Option 1: Tailscale VPN
+### PROTECT YOURSELF
 
-Tailscale creates a private network between your devices, allowing secure access from anywhere.
+1. **Default (127.0.0.1) is safest** - Only your machine can connect
+2. **0.0.0.0 requires firewall protection** - Ensure your router blocks external access
+3. **NEVER port forward** - Don't expose this to the internet for any reason
+4. **Use a VPN for remote access** - Tailscale, WireGuard, or similar
+5. **Check your firewall regularly** - Verify port 7676 is not exposed
+6. **Beware of writable mode** - Even more dangerous on 0.0.0.0
+
+### FOR REMOTE ACCESS, USE:
+
+- **Tailscale** - Private VPN, easy setup
+- **WireGuard** - Lightweight VPN
+- **SSH Tunneling** - Secure port forwarding
+- **Cloudflare Tunnel + Zero Trust** - Authenticated access
+
+**If you're unsure about network security, stick to the default (127.0.0.1) and use a VPN.**
+
+## Remote Connection Options
+
+For secure remote access to your terminal sessions, use one of the following methods. **Do not expose the service directly to the internet.**
+
+### Option 1: Tailscale VPN (Recommended)
+
+Tailscale creates a private, encrypted network between your devices.
 
 ```bash
 # Install Tailscale
@@ -301,7 +360,9 @@ tailscale ip -4
 
 Access using your Tailscale IP: `http://<your-tailscale-ip>:7676`
 
-### Option 2: Cloudflare Tunnels + Zero Trust
+### Option 2: Cloudflare Tunnel + Zero Trust
+
+Requires authentication, making it safer than direct exposure.
 
 ```bash
 # Install cloudflared
