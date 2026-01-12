@@ -69,3 +69,84 @@ func IsValidSessionName(name string) bool {
 	}
 	return true
 }
+
+// CreateSession creates a new tmux session with the given name
+func CreateSession(sessionName string) error {
+	if !IsValidSessionName(sessionName) {
+		return fmt.Errorf("invalid session name: %s", sessionName)
+	}
+	if SessionExists(sessionName) {
+		return fmt.Errorf("session '%s' already exists", sessionName)
+	}
+	cmd := exec.Command("tmux", "new-session", "-d", "-s", sessionName)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to create session: %w\nOutput: %s", err, string(output))
+	}
+	return nil
+}
+
+// KillSession kills (deletes) a tmux session
+func KillSession(sessionName string) error {
+	if !IsValidSessionName(sessionName) {
+		return fmt.Errorf("invalid session name: %s", sessionName)
+	}
+	if !SessionExists(sessionName) {
+		return fmt.Errorf("session '%s' does not exist", sessionName)
+	}
+	cmd := exec.Command("tmux", "kill-session", "-t", sessionName)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to kill session: %w\nOutput: %s", err, string(output))
+	}
+	return nil
+}
+
+// AttachSession attaches the current terminal to an existing tmux session
+// This should be called when the process will replace itself with tmux
+func AttachSession(sessionName string) error {
+	if !IsValidSessionName(sessionName) {
+		return fmt.Errorf("invalid session name: %s", sessionName)
+	}
+	if !SessionExists(sessionName) {
+		return fmt.Errorf("session '%s' does not exist", sessionName)
+	}
+	// This returns an error because we intend to exec it, not run it
+	return fmt.Errorf("use exec.Command for tmux attach")
+}
+
+// SendCommand sends a command to a tmux session (e.g., to set status bar or display banner)
+func SendCommand(sessionName, command string) error {
+	if !IsValidSessionName(sessionName) {
+		return fmt.Errorf("invalid session name: %s", sessionName)
+	}
+	if !SessionExists(sessionName) {
+		return fmt.Errorf("session '%s' does not exist", sessionName)
+	}
+	cmd := exec.Command("tmux", "send-keys", "-t", sessionName, command, "Enter")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to send command to session: %w\nOutput: %s", err, string(output))
+	}
+	return nil
+}
+
+// SetStatusLine sets the tmux status line configuration for a session
+func SetStatusLine(sessionName string) error {
+	statusConfig := []string{
+		"set-option -g status-left '#[bg=green]#[fg=black] VIBE #[default] #{session_name} '",
+		"set-option -g status-right '%H:%M %d-%b-%y'",
+		"set-option -g status-bg '#1a1a2e'",
+		"set-option -g status-fg '#eee8aa'",
+		"set-option -g status-interval 1",
+	}
+
+	for _, cfg := range statusConfig {
+		cmd := exec.Command("tmux", strings.Fields(cfg)...)
+		cmd.Args = append([]string{"tmux"}, strings.Fields(cfg)...)
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("failed to set status line: %w", err)
+		}
+	}
+	return nil
+}

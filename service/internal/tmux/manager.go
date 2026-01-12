@@ -2,7 +2,6 @@ package tmux
 
 import (
 	"log"
-	"strings"
 	"sync"
 	"time"
 
@@ -162,6 +161,7 @@ func (m *Manager) discoveryLoop() {
 }
 
 // scanAndAttach scans for tmux sessions and attaches to matching ones
+// Also removes sessions that no longer exist in tmux
 func (m *Manager) scanAndAttach() {
 	// Get all tmux sessions
 	sessionNames, err := ListSessions()
@@ -169,9 +169,27 @@ func (m *Manager) scanAndAttach() {
 		return
 	}
 
-	// Check each session
+	// Create a set of current session names for quick lookup
+	currentSessions := make(map[string]bool)
+	for _, name := range sessionNames {
+		currentSessions[name] = true
+	}
+
+	// Find and remove sessions that no longer exist
+	m.mu.Lock()
+	for sessionID, sess := range m.sessions {
+		if !currentSessions[sess.SessionName] {
+			// Session no longer exists in tmux, remove it
+			log.Printf("Session no longer exists: %s", sess.SessionName)
+			sess.Stop()
+			delete(m.sessions, sessionID)
+			delete(m.sessionByName, sess.SessionName)
+		}
+	}
+	m.mu.Unlock()
+
+	// Add new sessions that aren't tracked yet
 	for _, sessionName := range sessionNames {
-		// Skip if already attached
 		m.mu.RLock()
 		_, alreadyAttached := m.sessionByName[sessionName]
 		m.mu.RUnlock()
@@ -212,14 +230,9 @@ func (m *Manager) broadcastSessions() {
 }
 
 // shouldAutoAttach checks if a session name matches auto-attach patterns
+// Currently returns true for ALL sessions (no filtering)
 func (m *Manager) shouldAutoAttach(sessionName string) bool {
-	for _, pattern := range m.autoAttachPatterns {
-		// Check if session name starts with pattern
-		if strings.HasPrefix(sessionName, pattern) {
-			return true
-		}
-	}
-	return false
+	return true
 }
 
 // Stop stops the discovery loop
