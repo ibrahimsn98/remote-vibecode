@@ -97,7 +97,7 @@ That's it! You now have a browser-based terminal connected to your session.
 ### Start the Web Server
 
 ```bash
-rv serve [--host 0.0.0.0] [--port 9000]
+rv serve [--host 127.0.0.1] [--port 9000]
 ```
 
 Starts the web server for remote terminal viewing.
@@ -110,8 +110,8 @@ Starts the web server for remote terminal viewing.
 ```bash
 rv serve                                    # Default: 127.0.0.1:7676
 rv serve --host 0.0.0.0                     # Allow network access
-rv serve --port 9000                        # Custom port
-rv serve --host 192.168.1.100 --port 9000   # Both custom
+rv serve --port 7676                        # Custom port
+rv serve --host 127.0.0.1 --port 7676       # Both custom
 ```
 
 ### Start a New Session
@@ -199,10 +199,10 @@ rv start -w pair-session
 
 ```bash
 # Allow access from other devices on your network
-rv serve --host 0.0.0.0 --port 9000
+rv serve --host 127.0.0.1 --port 7676
 
 # Access from another device
-# http://YOUR_LOCAL_IP:9000
+# http://YOUR_LOCAL_IP:7676
 ```
 
 ## Session Modes
@@ -252,10 +252,10 @@ rv serve --port 9000
 # Local only (default)
 rv serve --host 127.0.0.1
 
-# Allow network access
+# Allow network access (Read #Security Disclaimer)
 rv serve --host 0.0.0.0
 
-# Specific IP
+# Specific IP (Read #Security Disclaimer)
 rv serve --host 192.168.1.100
 ```
 
@@ -264,6 +264,19 @@ rv serve --host 192.168.1.100
 ```bash
 rv serve --host 0.0.0.0 --port 9000
 ```
+
+## Security Disclaimer
+
+**IMPORTANT**: The `rv serve` command runs on `127.0.0.1` (localhost) by default and is **not exposed to external networks**.
+
+**Never use `--host 0.0.0.0`** without proper security measures. Doing so creates a **Remote Code Execution (RCE) vulnerability** - anyone on your network can access your terminal sessions without authentication.
+
+For remote access, always use one of the following secure methods:
+- A VPN service (Tailscale, WireGuard)
+- SSH tunneling
+- Cloudflare Tunnels with Zero Trust authentication
+
+**Never expose Remote Vibecode directly to the internet without authentication.**
 
 ## Remote Connection
 
@@ -370,13 +383,6 @@ remote-vibecode/
 └── README.md
 ```
 
-### Running Tests
-
-```bash
-cd service
-go test ./...
-```
-
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
@@ -386,45 +392,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
-
-## Security Disclaimer
-
-**IMPORTANT**: The `rv serve` command runs on `127.0.0.1` (localhost) by default and is **not exposed to external networks**.
-
-**Never use `--host 0.0.0.0`** without proper security measures. Doing so creates a **Remote Code Execution (RCE) vulnerability** - anyone on your network can access your terminal sessions without authentication.
-
-For remote access, always use one of the following secure methods:
-- A VPN service (Tailscale, WireGuard)
-- SSH tunneling
-- Cloudflare Tunnels with Zero Trust authentication
-
-**Never expose Remote Vibecode directly to the internet without authentication.**
-
-## FAQ
-
-**Q: Can I access this from another computer?**
-
-A: Yes! Use `rv serve --host 0.0.0.0` and ensure your firewall allows port 7676.
-
-**Q: Is my terminal session secure?**
-
-A: Remote Vibecode runs on localhost by default. When using `--host 0.0.0.0`, ensure you're on a trusted network or use a VPN.
-
-**Q: Can multiple people view the same session?**
-
-A: Yes! Multiple browsers can connect to the same session simultaneously.
-
-**Q: What's the difference between read-only and writable sessions?**
-
-A: Read-only sessions allow viewing only. Writable sessions (created with `-w`) allow web clients to type commands.
-
-**Q: What happens to my session when I close the browser?**
-
-A: Your session continues running in the background. You can reconnect anytime and pick up where you left off.
-
-**Q: Does this work with SSH?**
-
-A: Yes! You can use SSH within a Remote Vibecode session just like a normal terminal.
 
 ## License
 
