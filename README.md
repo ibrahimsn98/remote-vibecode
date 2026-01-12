@@ -63,7 +63,7 @@ Browser (xterm.js) <---> WebSocket (gotty protocol) <---> tmux session
 
 ```bash
 brew tap ibrahimsn98/homebrew-remote-vibecode
-brew install rv
+brew install rvc
 ```
 
 ## Quick Start
@@ -71,7 +71,7 @@ brew install rv
 ### Step 1: Start the Web Server
 
 ```bash
-rv serve
+rvc serve
 ```
 
 The server runs on http://localhost:7676 by default.
@@ -81,7 +81,7 @@ The server runs on http://localhost:7676 by default.
 In a new terminal:
 
 ```bash
-rv start my-project
+rvc start my-project
 ```
 
 This creates a **read-only** session - viewers can see but not type.
@@ -97,7 +97,7 @@ That's it! You now have a browser-based terminal connected to your session.
 ### Start the Web Server
 
 ```bash
-rv serve [--host 127.0.0.1] [--port 9000]
+rvc serve [--host 127.0.0.1] [--port 9000]
 ```
 
 Starts the web server for remote terminal viewing.
@@ -108,16 +108,16 @@ Starts the web server for remote terminal viewing.
 
 **Examples:**
 ```bash
-rv serve                                    # Default: 127.0.0.1:7676
-rv serve --host 0.0.0.0                     # Allow network access
-rv serve --port 7676                        # Custom port
-rv serve --host 127.0.0.1 --port 7676       # Both custom
+rvc serve                                    # Default: 127.0.0.1:7676
+rvc serve --host 0.0.0.0                     # Allow network access
+rvc serve --port 7676                        # Custom port
+rvc serve --host 127.0.0.1 --port 7676       # Both custom
 ```
 
 ### Start a New Session
 
 ```bash
-rv start <session-name> [-w]
+rvc start <session-name> [-w]
 ```
 
 Creates and starts a new named tmux session.
@@ -127,15 +127,15 @@ Creates and starts a new named tmux session.
 
 **Examples:**
 ```bash
-rv start frontend           # Read-only session (default)
-rv start -w backend         # Writable session
-rv start database -w        # Writable session
+rvc start frontend           # Read-only session (default)
+rvc start -w backend         # Writable session
+rvc start database -w        # Writable session
 ```
 
 ### List Sessions
 
 ```bash
-rv list
+rvc list
 ```
 
 Shows all active tmux sessions.
@@ -143,7 +143,7 @@ Shows all active tmux sessions.
 ### Stop a Session
 
 ```bash
-rv stop <session-name> [-f]
+rvc stop <session-name> [-f]
 ```
 
 Stops and removes the specified session.
@@ -154,7 +154,7 @@ Stops and removes the specified session.
 ### Join a Session
 
 ```bash
-rv join [session-name]
+rvc join [session-name]
 ```
 
 Attaches your terminal to an existing session (useful for direct terminal access).
@@ -165,12 +165,12 @@ Attaches your terminal to an existing session (useful for direct terminal access
 
 ```bash
 # Terminal 1: Start the web server
-rv serve
+rvc serve
 
 # Terminal 2: Start sessions
-rv start frontend
-rv start -w backend
-rv start database
+rvc start frontend
+rvc start -w backend
+rvc start database
 
 # Open http://localhost:7676
 # Switch between sessions using the sidebar
@@ -180,7 +180,7 @@ rv start database
 
 ```bash
 # Start a read-only session (default)
-rv start demo-session
+rvc start demo-session
 
 # Viewers can see your terminal but cannot type
 ```
@@ -189,7 +189,7 @@ rv start demo-session
 
 ```bash
 # Start a writable session
-rv start -w pair-session
+rvc start -w pair-session
 
 # Both you and web viewers can type
 # Great for pair programming
@@ -199,7 +199,7 @@ rv start -w pair-session
 
 ```bash
 # Allow access from other devices on your network
-rv serve --host 127.0.0.1 --port 7676
+rvc serve --host 127.0.0.1 --port 7676
 
 # Access from another device
 # http://YOUR_LOCAL_IP:7676
@@ -238,36 +238,36 @@ Perfect for:
 
 ## Configuration
 
-The `rv serve` command uses CLI flags instead of environment variables:
+The `rvc serve` command uses CLI flags instead of environment variables:
 
 ### Port
 
 ```bash
-rv serve --port 9000
+rvc serve --port 9000
 ```
 
 ### Host
 
 ```bash
 # Local only (default)
-rv serve --host 127.0.0.1
+rvc serve --host 127.0.0.1
 
 # Allow network access (Read #Security Disclaimer)
-rv serve --host 0.0.0.0
+rvc serve --host 0.0.0.0
 
 # Specific IP (Read #Security Disclaimer)
-rv serve --host 192.168.1.100
+rvc serve --host 192.168.1.100
 ```
 
 ### Combined
 
 ```bash
-rv serve --host 0.0.0.0 --port 9000
+rvc serve --host 0.0.0.0 --port 9000
 ```
 
 ## Security Disclaimer
 
-**IMPORTANT**: The `rv serve` command runs on `127.0.0.1` (localhost) by default and is **not exposed to external networks**.
+**IMPORTANT**: The `rvc serve` command runs on `127.0.0.1` (localhost) by default and is **not exposed to external networks**.
 
 **Never use `--host 0.0.0.0`** without proper security measures. Doing so creates a **Remote Code Execution (RCE) vulnerability** - anyone on your network can access your terminal sessions without authentication.
 
@@ -309,7 +309,7 @@ brew install cloudflared
 cloudflared tunnel login
 
 # Create a tunnel
-cloudflared tunnel create rv
+cloudflared tunnel create rvc
 
 # Run the tunnel
 cloudflared tunnel --url http://localhost:7676
@@ -326,14 +326,14 @@ Set up Zero Trust access in the Cloudflare dashboard for authentication.
 lsof -i :7676
 
 # Try a different port
-rv serve --port 9000
+rvc serve --port 9000
 ```
 
 ### Session Not Appearing
 
 ```bash
 # Verify the session is running
-rv list
+rvc list
 
 # Check the web console for WebSocket errors
 # Ensure the server is running
@@ -356,10 +356,10 @@ git clone https://github.com/ibrahimsn98/remote-vibecode.git
 cd remote-vibecode
 
 # Build the binary
-cd service && go build -o rv ./cmd/vibecode
+cd service && go build -o rvc ./cmd/vibecode
 
 # Run locally
-./rv serve
+./rvc serve
 ```
 
 ### Project Structure
@@ -367,7 +367,7 @@ cd service && go build -o rv ./cmd/vibecode
 ```
 remote-vibecode/
 ├── service/
-│   ├── cmd/vibecode/       # CLI entry point (rv command)
+│   ├── cmd/vibecode/       # CLI entry point (rvc command)
 │   │   ├── main.go         # Main CLI with serve command
 │   │   ├── commands/        # CLI subcommands (start, stop, list, join)
 │   │   ├── web/            # Embedded web dashboard

@@ -15,8 +15,8 @@ import (
 
 var StartCmd = &cobra.Command{
 	Use:   "start",
-	Short: "Start a new rv session",
-	Long: `Start a new rv tmux session with custom configuration.
+	Short: "Start a new rvc session",
+	Long: `Start a new rvc tmux session with custom configuration.
 The session will have a distinctive status bar and startup banner.`,
 	RunE: runStart,
 }
@@ -67,7 +67,7 @@ func runStart(cmd *cobra.Command, args []string) error {
 	fmt.Print(banner.String(sessionName))
 
 	// Show progress and wait
-	fmt.Printf("\n► Starting %s rv session", sessionName)
+	fmt.Printf("\n► Starting %s rvc session", sessionName)
 	for i := 0; i < 5; i++ {
 		time.Sleep(1000 * time.Millisecond)
 		fmt.Print(".")
@@ -91,13 +91,13 @@ func checkServiceRunning() {
 	cmd := exec.Command("curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", "http://localhost:8080/api/v1/health")
 	output, err := cmd.Output()
 	if err != nil || string(output) != "200" {
-		fmt.Fprintf(os.Stderr, "⚠ Warning: rv server may not be running.\n")
-		fmt.Fprintf(os.Stderr, "  Start it with: rv serve\n\n")
+		fmt.Fprintf(os.Stderr, "⚠ Warning: rvc servcer may not be running.\n")
+		fmt.Fprintf(os.Stderr, "  Start it with: rvc servce\n\n")
 	}
 }
 
 func promptSessionName() (string, error) {
-	defaultName := fmt.Sprintf("rv-%d", time.Now().Unix())
+	defaultName := fmt.Sprintf("rvc-%d", time.Now().Unix())
 
 	var sessionName string
 	prompt := &survey.Input{
@@ -116,7 +116,7 @@ func promptSessionName() (string, error) {
 
 	// Check if session already exists
 	if tmux.SessionExists(sessionName) {
-		return "", fmt.Errorf("session '%s' already exists. Use 'rv join %s' to connect.", sessionName, sessionName)
+		return "", fmt.Errorf("session '%s' already exists. Use 'rvc join %s' to connect.", sessionName, sessionName)
 	}
 
 	return sessionName, nil
@@ -129,7 +129,7 @@ func setStatusLine(sessionName string) error {
 		"set-option -g status-right '%H:%M %d-%b-%y'",
 		"set-option -g status-bg '#1a1a2e'",
 		"set-option -g status-fg '#eee8aa'",
-		"set-option -g status-interval 1",
+		"set-option -g status-intervcal 1",
 	}
 
 	for _, cfg := range statusConfig {

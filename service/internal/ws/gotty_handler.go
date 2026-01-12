@@ -166,7 +166,7 @@ func (h *GottyHandler) HandleTmuxSession(c *gin.Context) {
 
 // isSessionWritable checks if a session is writable using tmux user-options
 func isSessionWritable(sessionName string) bool {
-	cmd := exec.Command("tmux", "show-option", "-t", sessionName, "-qv", "@rv-writable")
+	cmd := exec.Command("tmux", "show-option", "-t", sessionName, "-qv", "@rvc-writable")
 	output, err := cmd.Output()
 	if err != nil {
 		return false // Not set = read-only

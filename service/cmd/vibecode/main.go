@@ -55,7 +55,7 @@ var (
 
 var serveCmd = &cobra.Command{
 	Use:   "serve",
-	Short: "Start the rv web server",
+	Short: "Start the rvc web server",
 	Long:  "Start the web server for remote terminal viewing. Use --host and --port to customize.",
 	RunE:  runServe,
 }
@@ -175,9 +175,9 @@ func getContentType(filepath string) string {
 
 func main() {
 	rootCmd := &cobra.Command{
-		Use:   "rv",
-		Short: "rv - Remote tmux session management",
-		Long: `rv is a CLI tool for managing tmux sessions used with
+		Use:   "rvc",
+		Short: "rvc - Remote tmux session management",
+		Long: `rvc is a CLI tool for managing tmux sessions used with
 the remote vibecode service. It provides an easy way to create, join,
 list, and stop tmux sessions with custom configuration.`,
 		Version: "1.0.0",

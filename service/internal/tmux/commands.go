@@ -175,7 +175,7 @@ func SendCommand(sessionName, command string) error {
 // SetStatusLine sets the tmux status line configuration for a session
 func SetStatusLine(sessionName string) error {
 	statusConfig := []string{
-		"set-option -g status-left '#[bg=green]#[fg=black] RV #[default] #{session_name} '",
+		"set-option -g status-left '#[bg=green]#[fg=black] RVC #[default] #{session_name} '",
 		"set-option -g status-right '%H:%M %d-%b-%y'",
 		"set-option -g status-bg '#1a1a2e'",
 		"set-option -g status-fg '#eee8aa'",
@@ -198,7 +198,7 @@ func SetWritable(sessionName string, writable bool) error {
 	if writable {
 		value = "1"
 	}
-	cmd := exec.Command("tmux", "set-option", "-t", sessionName, "@rv-writable", value)
+	cmd := exec.Command("tmux", "set-option", "-t", sessionName, "@rvc-writable", value)
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to set writable flag: %w", err)
 	}
@@ -207,7 +207,7 @@ func SetWritable(sessionName string, writable bool) error {
 
 // IsWritable checks if a session is writable (returns false if not set)
 func IsWritable(sessionName string) bool {
-	cmd := exec.Command("tmux", "show-option", "-t", sessionName, "-qv", "@rv-writable")
+	cmd := exec.Command("tmux", "show-option", "-t", sessionName, "-qv", "@rvc-writable")
 	output, err := cmd.Output()
 	if err != nil {
 		return false // Not set = read-only

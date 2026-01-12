@@ -10,8 +10,8 @@ import (
 
 var JoinCmd = &cobra.Command{
 	Use:   "join [session-name]",
-	Short: "Join an existing rv session",
-	Long: `Join an existing rv tmux session.
+	Short: "Join an existing rvc session",
+	Long: `Join an existing rvc tmux session.
 If no session name is provided, you'll be prompted to select from available sessions.`,
 	RunE: runJoin,
 }
@@ -37,7 +37,7 @@ func runJoin(cmd *cobra.Command, args []string) error {
 
 	// Check if session exists
 	if !tmux.SessionExists(sessionName) {
-		return fmt.Errorf("session '%s' does not exist. Use 'rv list' to see available sessions.", sessionName)
+		return fmt.Errorf("session '%s' does not exist. Use 'rvc list' to see available sessions.", sessionName)
 	}
 
 	// Attach to session
